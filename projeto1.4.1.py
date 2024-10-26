@@ -2,19 +2,16 @@ from datetime import datetime, timedelta
 import os
 import json
 clear = lambda: os.system('cls')
-
-''' Pra funcao de testes
-clientes = []
-dias_com_horarios = {}
-caixadiario = {}
-dados = {
-    "clientes" : clientes,
-    "caixadiario" : caixadiario,
-    "dias_com_horarios" : dias_com_horarios
-}
-with open("dados.json", "w") as arquivo:
-    json.dump(dados, arquivo)
-'''
+if os.path.exists(f'{os.path.dirname(os.path.abspath(__file__))}/dados.json'):
+    True
+else:
+    dados = {
+    "clientes" : [],
+    "caixadiario" : {},
+    "dias_com_horarios" : {}
+    }
+    with open("dados.json", "w") as arquivo:
+        json.dump(dados, arquivo)
 
 with open("dados.json", "r") as arquivo:
     dados_carregados = json.load(arquivo)
@@ -241,7 +238,7 @@ def marcar_horario(dias_com_horarios,clientes):
                 clear()
                 print("Data inválida. Utilize formato dd/mm.")
         clear()
-    #Marcar horário
+
         while True:
             for x in range(8):
                 x += 1
