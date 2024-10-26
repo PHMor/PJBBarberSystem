@@ -1,8 +1,44 @@
 from datetime import datetime, timedelta
 import os
+import json
 clear = lambda: os.system('cls')
 
+''' Pra funcao de testes
 clientes = []
+dias_com_horarios = {}
+caixadiario = {}
+dados = {
+    "clientes" : clientes,
+    "caixadiario" : caixadiario,
+    "dias_com_horarios" : dias_com_horarios
+}
+with open("dados.json", "w") as arquivo:
+    json.dump(dados, arquivo)
+'''
+
+with open("dados.json", "r") as arquivo:
+    dados_carregados = json.load(arquivo)
+
+def salvar_dados(clientes,caixadiario,dias_com_horarios):
+    clientes_ps =  [cliente.to_dict() for cliente in clientes]
+    dias_ps = {
+        data:{
+            numero: [evento.to_dict() for evento in horarios]
+            for numero, horarios in horarios_dia.items()
+        }
+        for data, horarios_dia in dias_com_horarios.items()
+    }
+    
+    dados = {
+    "clientes" : clientes_ps,
+    "caixadiario" : caixadiario,
+    "dias_com_horarios" : dias_ps
+    }
+    
+    with open("dados.json", "w") as arquivo:
+        json.dump(dados, arquivo)
+        
+caixadiario = dados_carregados["caixadiario"]
 
 def validar_data(data_str):
     try:
@@ -28,23 +64,52 @@ class cadastro:
         
     def puxar_nome(self):
         return self.nome
+    
+    def to_dict(self):
+        return {
+            "nome": self.nome,
+            "cpf": self.cpf,
+            "telefone": self.telefone,
+            "endereco": self.endereco,
+            "datanasc": self.datanasc
+        }
+        
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["nome"], data["cpf"], data["telefone"], data["endereco"], data["datanasc"])
+
+clientes = [cadastro.from_dict(dado) for dado in dados_carregados["clientes"]]
 
 class horario:
     def __init__(self,hora,data,nome,cod,descricao):
         self.data = data
-        if hora <=4:
-            self.hora = f"0{hora+7}:00"
-        else:
-            self.hora = f"0{hora+8}:00"
+        self.hora = hora
+
         self.nome = nome
         self.cod = cod
         self.descricao = descricao
         self.sit = 0
-    
+        
+    def to_dict(self):
+        return {
+            "hora" : self.hora,
+            "data" : self.data,
+            "nome" : self.nome,
+            "cod" : self.cod,
+            "descricao" : self.descricao
+        }
+    @classmethod
+    def from_dict(cls, data):
+        return cls(data["hora"], data["data"], data["nome"], data["cod"], data["descricao"])
+
     def mostrar_horario(self):
         clear()
+        if self.hora <=4:
+            hora = f"0{self.hora+7}:00"
+        else:
+            hora = f"{self.hora+8}:00"
         print("=========================RESUMO=========================")
-        print(f"Nome: {self.nome}\nCod: {self.cod}\nData: {self.data}\nHora: {self.hora}")
+        print(f"Nome: {self.nome}\nCod: {self.cod}\nData: {self.data}\nHora: {hora}")
         if self.descricao == "1":
             print("Descrição: Cabelo")
         if self.descricao == "2":
@@ -65,6 +130,14 @@ class horario:
         if self.sit == 1:
             print("Situação: Recebido")
         print("========================================================")
+dias_com_horarios = dados_carregados["dias_com_horarios"]
+dias_com_horarios = {
+    data: {
+        numero: [horario.from_dict(evento) for evento in horarios]
+        for numero, horarios in horarios_dia.items()
+    }
+    for data, horarios_dia in dados_carregados["dias_com_horarios"].items()
+}
 
 def mostrar_clientes(clientes):
     clear()
@@ -124,9 +197,8 @@ def cadastrar(clientes):
             True
         else:
             quer = int(input("Comando incorreto.\nDeseja iniciar um novo cadastro?"))
+    salvar_dados(clientes,caixadiario,dias_com_horarios)
     return(clientes)
-
-dias_com_horarios = {}
 
 def marcar_horario(dias_com_horarios,clientes):
     if len(clientes) == 0:
@@ -175,7 +247,6 @@ def marcar_horario(dias_com_horarios,clientes):
                 x += 1
                 xstr = f"{x}"
                 if xstr not in dias_com_horarios[data_marcada]:
-                    print(x)
                     if x <=2:
                         xstr = f"0{x+7}:00"
                     elif x <=4:
@@ -200,6 +271,7 @@ def marcar_horario(dias_com_horarios,clientes):
             else:
                 print("Valor incorreto.")
         dias_com_horarios[data_marcada][horario_marcado][0].mostrar_horario()
+        salvar_dados(clientes,caixadiario,dias_com_horarios)
         input("")
         return(dias_com_horarios)
 
@@ -254,6 +326,7 @@ def receber(caixadiario,dias_com_horarios):
                     if pgmnt == 4:
                         caixadiario[dia]["Pix"] += dias_com_horarios[dia][hora][0].valor
                     dias_com_horarios[dia][hora][0].sit = 1
+                    salvar_dados(clientes,caixadiario,dias_com_horarios)
                     print("Recebido com sucesso")
                     input("Pressione ENTER para continuar")
             else:
@@ -265,8 +338,6 @@ def receber(caixadiario,dias_com_horarios):
     else:
         print("Não possui horários marcados nesse dia.")
         input("Pressione ENTER para continuar")
-
-caixadiario = {}
 
 while True:
     clear()
@@ -281,12 +352,12 @@ while True:
             if dia in dias_com_horarios:
                 print("Horarios marcados nesse dia:")
                 for chave in dias_com_horarios[dia].keys():
-                    chavestr = chave
+                    chavestr = f"{chave}"
                     chave = int(chave)
                     if chave <=4:
-                        chaveh = f"0{chave+7}:00 Cliente: {dias_com_horarios[dia][chave][0].nome}"
+                        chaveh = f"0{chave+7}:00 [Cliente: {dias_com_horarios[dia][chavestr][0].nome}]"
                     else:
-                        chaveh = f"{chave+8}:00 Cliente: {dias_com_horarios[dia][chave][0].nome}"
+                        chaveh = f"{chave+8}:00 [Cliente: {dias_com_horarios[dia][chavestr][0].nome}]"
                     print(f"[{chave}]{chaveh}")
                 hora = input("\nQual hora deseja verificar?")
                 if hora in dias_com_horarios[dia]:
