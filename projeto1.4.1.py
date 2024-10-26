@@ -17,10 +17,10 @@ with open("dados.json", "r") as arquivo:
     dados_carregados = json.load(arquivo)
 
 def salvar_dados(clientes,caixadiario,dias_com_horarios):
-    clientes_ps =  [cliente.to_dict() for cliente in clientes]
+    clientes_ps =  [cliente.viradici() for cliente in clientes]
     dias_ps = {
         data:{
-            numero: [evento.to_dict() for evento in horarios]
+            numero: [marcado.viradici() for marcado in horarios]
             for numero, horarios in horarios_dia.items()
         }
         for data, horarios_dia in dias_com_horarios.items()
@@ -62,7 +62,7 @@ class cadastro:
     def puxar_nome(self):
         return self.nome
     
-    def to_dict(self):
+    def viradici(self):
         return {
             "nome": self.nome,
             "cpf": self.cpf,
@@ -72,32 +72,33 @@ class cadastro:
         }
         
     @classmethod
-    def from_dict(cls, data):
+    def viraclasse(cls, data):
         return cls(data["nome"], data["cpf"], data["telefone"], data["endereco"], data["datanasc"])
 
-clientes = [cadastro.from_dict(dado) for dado in dados_carregados["clientes"]]
+clientes = [cadastro.viraclasse(dado) for dado in dados_carregados["clientes"]]
 
 class horario:
-    def __init__(self,hora,data,nome,cod,descricao):
+    def __init__(self,hora,data,nome,cod,descricao,sit):
         self.data = data
         self.hora = hora
 
         self.nome = nome
         self.cod = cod
         self.descricao = descricao
-        self.sit = 0
+        self.sit = sit
         
-    def to_dict(self):
+    def viradici(self):
         return {
             "hora" : self.hora,
             "data" : self.data,
             "nome" : self.nome,
             "cod" : self.cod,
-            "descricao" : self.descricao
+            "descricao" : self.descricao,
+            "sit" : self.sit
         }
     @classmethod
-    def from_dict(cls, data):
-        return cls(data["hora"], data["data"], data["nome"], data["cod"], data["descricao"])
+    def viraclasse(cls, data):
+        return cls(data["hora"], data["data"], data["nome"], data["cod"], data["descricao"],data["sit"])
 
     def mostrar_horario(self):
         clear()
@@ -130,7 +131,7 @@ class horario:
 dias_com_horarios = dados_carregados["dias_com_horarios"]
 dias_com_horarios = {
     data: {
-        numero: [horario.from_dict(evento) for evento in horarios]
+        numero: [horario.viraclasse(marcado) for marcado in horarios]
         for numero, horarios in horarios_dia.items()
     }
     for data, horarios_dia in dados_carregados["dias_com_horarios"].items()
@@ -261,7 +262,7 @@ def marcar_horario(dias_com_horarios,clientes):
                     clear()
                     descricao = input("[1]Cabelo\n[2]Barba\n[3]Cabelo e barba\n\n")
                     nominho = clientes[clienteint].puxar_nome()
-                    hora = horario(horario_marcadoint,data_marcada,nominho,clienteint+1,descricao)
+                    hora = horario(horario_marcadoint,data_marcada,nominho,clienteint+1,descricao,0)
                     dias_com_horarios[data_marcada][horario_marcado] = []
                     dias_com_horarios[data_marcada][horario_marcado].append(hora)
                     break
@@ -312,20 +313,20 @@ def receber(caixadiario,dias_com_horarios):
                         else:
                             print("Valor incorreto")
                     print(f"Troco : {pago - dias_com_horarios[dia][hora][0].valor}")
-                    if dia not in caixadiario:
-                        caixadiario[dia] = {"Dinheiro" : 0,"Crédito" : 0, "Débito" : 0,"Pix" : 0,"Vendas" : 0,"Faltas" : 0}
-                    if pgmnt == 1:
-                        caixadiario[dia]["Dinheiro"] += dias_com_horarios[dia][hora][0].valor
-                    if pgmnt == 2:
-                        caixadiario[dia]["Crédito"] += dias_com_horarios[dia][hora][0].valor
-                    if pgmnt == 3:
-                        caixadiario[dia]["Débito"] += dias_com_horarios[dia][hora][0].valor
-                    if pgmnt == 4:
+                if dia not in caixadiario:
+                    caixadiario[dia] = {"Dinheiro" : 0,"Credito" : 0, "Debito" : 0,"Pix" : 0}
+                if pgmnt == 1:
+                    caixadiario[dia]["Dinheiro"] += dias_com_horarios[dia][hora][0].valor
+                if pgmnt == 2:
+                    caixadiario[dia]["Credito"] += dias_com_horarios[dia][hora][0].valor
+                if pgmnt == 3:
+                    caixadiario[dia]["Debito"] += dias_com_horarios[dia][hora][0].valor
+                if pgmnt == 4:
                         caixadiario[dia]["Pix"] += dias_com_horarios[dia][hora][0].valor
-                    dias_com_horarios[dia][hora][0].sit = 1
-                    salvar_dados(clientes,caixadiario,dias_com_horarios)
-                    print("Recebido com sucesso")
-                    input("Pressione ENTER para continuar")
+                dias_com_horarios[dia][hora][0].sit = 1
+                salvar_dados(clientes,caixadiario,dias_com_horarios)
+                print("Recebido com sucesso")
+                input("Pressione ENTER para continuar")
             else:
                 print("Já recebido.")
                 input("Pressione ENTER para continuar")
@@ -338,7 +339,11 @@ def receber(caixadiario,dias_com_horarios):
 
 while True:
     clear()
-    menu = input("====================POS====================\n[11]Marcar horário\n[12]Verificar horários\n[13]Excluir horário\n[14]Receber\n====================CONFIGURAR CADASTROS====================\nEscolha a opção:\n[21]Cadastrar Cliente\n[22]Consultar cliente\n[23]Verificar códigos\n[24]Remover cadastro\n\n[X]Fechar sistema\n")
+    print("=============================POS============================\n[11]Marcar horário\n[12]Verificar horários\n[13]Excluir horário\n[14]Receber")
+    print("====================CONFIGURAR CADASTROS====================\n[21]Cadastrar Cliente\n[22]Consultar cliente\n[23]Verificar códigos\n[24]Remover cadastro")
+    print("=========================RELATÓRIOS=========================\n[31]Relatório de caixa")
+    print("\n\n[X]Fechar sistema")
+    menu = input("Digite a opção: ")
     if menu == "11":
         clear()
         dias_com_horarios = marcar_horario(dias_com_horarios,clientes)
@@ -454,6 +459,33 @@ while True:
                 else:
                     print("Código inválido.")
                     input("Pressione ENTER para continuar")
+    elif menu == "31":
+        while True:
+            clear()
+            dia = input("Qual dia você deseja tirar o relatório? (dd/mm/aaaa)")
+            receb = 0
+            if validar_data(dia):
+                if dia in caixadiario:
+                    print("==========================HORARIOS==========================")
+                    print(f"Horarios marcados: {len(dias_com_horarios[dia])}")
+                    for hora in dias_com_horarios[dia]:
+                        if dias_com_horarios[dia][hora][0].sit == 1:
+                            receb += 1
+                    print(f"Horarios vazios: {8-len(dias_com_horarios[dia])}")
+                    print(f"Horarios recebidos: {receb}")
+                    print(f"Horarios com falta: {len(dias_com_horarios[dia])-receb}")
+                    print("===========================VALORES==========================")
+                    for forma in caixadiario[dia]:
+                        print(f"{forma}: {caixadiario[dia][forma]}")
+                    input("Pressione ENTER para continuar")
+                    break
+                else:
+                    print("Não possuí vendas nesse dia.")
+                    input("Pressione ENTER para continuar")
+                    break
+            else:
+                print("Data incorreta. Utilize dd/mm/aaaa")
+                input("Pressione ENTER para continuar")
     elif menu == "X" or menu == "x":
         print("Fechando sistema")
         break
