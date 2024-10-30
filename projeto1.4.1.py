@@ -70,12 +70,10 @@ class cadastro:
             "endereco": self.endereco,
             "datanasc": self.datanasc
         }
-        
-    @classmethod
-    def viraclasse(cls, data):
-        return cls(data["nome"], data["cpf"], data["telefone"], data["endereco"], data["datanasc"])
-
-clientes = [cadastro.viraclasse(dado) for dado in dados_carregados["clientes"]]
+clientes = []
+for dado in dados_carregados["clientes"]:
+    cliente = cadastro(dado["nome"],dado["cpf"],dado["telefone"],dado["endereco"],dado["datanasc"])
+    clientes.append(cliente)
 
 class horario:
     def __init__(self,hora,data,nome,cod,descricao,sit):
@@ -96,9 +94,6 @@ class horario:
             "descricao" : self.descricao,
             "sit" : self.sit
         }
-    @classmethod
-    def viraclasse(cls, data):
-        return cls(data["hora"], data["data"], data["nome"], data["cod"], data["descricao"],data["sit"])
 
     def mostrar_horario(self):
         clear()
@@ -128,14 +123,16 @@ class horario:
         if self.sit == 1:
             print("Situação: Recebido")
         print("========================================================")
-dias_com_horarios = dados_carregados["dias_com_horarios"]
-dias_com_horarios = {
-    data: {
-        numero: [horario.viraclasse(marcado) for marcado in horarios]
-        for numero, horarios in horarios_dia.items()
-    }
-    for data, horarios_dia in dados_carregados["dias_com_horarios"].items()
-}
+dias_com_horarios = {}
+
+for data in dados_carregados["dias_com_horarios"]:
+    for hora in dados_carregados["dias_com_horarios"][data]:
+        for dado in dados_carregados["dias_com_horarios"][data][hora]:
+            amigo = horario(dado["hora"],dado["data"],dado["nome"],dado["cod"],dado["descricao"],dado["sit"])
+            dias_com_horarios[data] = {}
+            dias_com_horarios[data][hora] = []
+            dias_com_horarios[data][hora].append(amigo)
+    
 
 def mostrar_clientes(clientes):
     clear()
