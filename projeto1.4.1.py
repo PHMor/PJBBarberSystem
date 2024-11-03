@@ -132,7 +132,85 @@ for data in dados_carregados["dias_com_horarios"]:
             dias_com_horarios[data] = {}
             dias_com_horarios[data][hora] = []
             dias_com_horarios[data][hora].append(amigo)
+
+class produto:
+    def __init__(self,nome,preco):
+        self.nome = nome
+        self.preco = preco
+
+    def mostrar_produto(self):
+        print(f"Nome do produto: {self.nome}\nPreço do produto: {self.preco}")
+        
+class kit(produto):
+    def __init__(self,nome,preco,nome2,nome3,preco2,preco3):
+        self.nome = nome
+        self.preco = preco
+        self.nome2 = nome2
+        self.preco2 = preco2
+        self.preco3 = preco3
+        self.nome3 = nome3
     
+    def mostrar_kit(self):
+        clear()
+        print(f"Nome do kit:{self.nome3}")
+        print("Produto 1: ")
+        super().__init__(self.nome,self.preco)
+        super().mostrar_produto()
+        print("Produto 2: ")
+        super().__init__(self.nome2,self.preco2)
+        super().mostrar_produto()
+        print(f"Valor do kit: {self.preco3}")
+        
+produtos = []
+kits = []
+
+def cadastro_produto(produtos):
+    nome_produto = input("Qual o nome do produto:")
+    while True:
+        preco_produto = input("Preço do produto: ")
+        if preco_produto.isdigit():
+            preco_produto = int(preco_produto)
+            break
+        else:
+            print("Valor inválido.")
+    prod = produto(nome_produto,preco_produto)
+    produtos.append(prod)
+
+def cadastro_kit(produtos,kits):
+    nome_kit = input("Nome do kit: ")
+    while True:
+        cod1 = input("Código do 1º premio: ")
+        if cod1.isdigit():
+            cod1 = int(cod1)
+            if len(produtos) == 0:
+                print("Ainda nao possuí nenhum produto cadastrado.")
+            else:
+                if cod1 <= len(produtos) and cod1 > 0:
+                    break
+                else:
+                    print("Código inválido.")
+    while True:
+        cod2 = input("Código do 2º premio: ")
+        if cod2.isdigit():
+            cod2 = int(cod2)
+            if len(produtos) == 0:
+                print("Ainda nao possuí nenhum produto cadastrado.")
+            else:
+                if cod2 <= len(produtos) and cod2 > 0 and not cod1 == cod2:
+                    break
+                else:
+                    print("Código inválido.")
+    while True:
+        preco_kit = input("Preco do kit:")
+        if preco_kit.isdigit():
+            preco_kit = int(preco_kit)
+            break
+        else:
+            print("Valor inválido.")
+    kitp = kit(produtos[cod1-1].nome,produtos[cod1-1].preco,produtos[cod2-1].nome,nome_kit,produtos[cod2-1].preco,preco_kit)
+    kits.append(kitp)
+    kitp.mostrar_kit()
+    input("")
 
 def mostrar_clientes(clientes):
     clear()
@@ -269,6 +347,108 @@ def marcar_horario(dias_com_horarios,clientes):
         salvar_dados(clientes,caixadiario,dias_com_horarios)
         input("")
         return(dias_com_horarios)
+
+def venderprod(produtos,kits,caixadiario,clientes,dias_com_horarios):
+    qual = input("Deseja vender produto ou kit? [1]Produto [2]Kit")
+    if qual == "1":
+        while True:
+            qual = input("Qual produto deseja vender?")
+            if qual.isdigit():
+                qual = int(qual)
+                if qual <= len(produtos) and qual > 0:
+                    break
+                else:
+                    print("Código inválido.")
+            else:
+                print("Código inválido.")
+        clear()
+        while True:
+            pgmnt = input("Qual a forma de pagamento?\n[1]Dinheiro [2]Crédito [3]Débito [4]Pix")
+            if pgmnt.isdigit():
+                pgmnt = int(pgmnt)
+            if pgmnt > 0 and pgmnt < 5:
+                break
+            else:
+                print("Forma de pagamento inválida.")
+        if pgmnt == 1:
+            print(f"Valor devido: {produtos[qual-1].preco}")
+            while True:
+                pago = input(f"Qual valor pago: ")
+                if pago.isdigit():
+                    pago = int(pago)
+                    break
+                else:
+                    print("Valor incorreto")
+            print(f"Troco : {pago - produtos[qual-1].preco}")
+        dia = datetime.now()
+        dia = dia.strftime("%d/%m/%Y")
+        if dia not in caixadiario:
+            caixadiario[dia] = {"Dinheiro" : 0,"Credito" : 0, "Debito" : 0,"Pix" : 0}
+        if pgmnt == 1:
+            caixadiario[dia]["Dinheiro"] += produtos[qual-1].preco
+        if pgmnt == 2:
+            caixadiario[dia]["Credito"] += produtos[qual-1].preco
+        if pgmnt == 3:
+            caixadiario[dia]["Debito"] += produtos[qual-1].preco
+        if pgmnt == 4:
+            caixadiario[dia]["Pix"] += produtos[qual-1].preco
+        print("Recebido com sucesso")
+        clear()
+        print(caixadiario)
+        salvar_dados(clientes,caixadiario,dias_com_horarios)
+        input("Pressione ENTER para continuar")
+        return(caixadiario)
+    elif qual == "2":
+        while True:
+            qual = input("Qual kit deseja vender?")
+            if qual.isdigit():
+                qual = int(qual)
+                if qual <= len(kits) and qual > 0:
+                    break
+                else:
+                    print("Código inválido.")
+            else:
+                print("Código inválido.")
+        clear()
+        while True:
+            pgmnt = input("Qual a forma de pagamento?\n[1]Dinheiro [2]Crédito [3]Débito [4]Pix")
+            if pgmnt.isdigit():
+                pgmnt = int(pgmnt)
+            if pgmnt > 0 and pgmnt < 5:
+                break
+            else:
+                print("Forma de pagamento inválida.")
+        if pgmnt == 1:
+            print(f"Valor devido: {kits[qual-1].preco3}")
+            while True:
+                pago = input(f"Qual valor pago: ")
+                if pago.isdigit():
+                    pago = int(pago)
+                    break
+                else:
+                    print("Valor incorreto")
+            print(f"Troco : {pago - kits[qual-1].preco3}")
+        dia = datetime.now()
+        dia = dia.strftime("%d/%m/%Y")
+        if dia not in caixadiario:
+            caixadiario[dia] = {"Dinheiro" : 0,"Credito" : 0, "Debito" : 0,"Pix" : 0}
+        if pgmnt == 1:
+            caixadiario[dia]["Dinheiro"] += kits[qual-1].preco3
+        if pgmnt == 2:
+            caixadiario[dia]["Credito"] += kits[qual-1].preco3
+        if pgmnt == 3:
+            caixadiario[dia]["Debito"] += kits[qual-1].preco3
+        if pgmnt == 4:
+            caixadiario[dia]["Pix"] += kits[qual-1].preco3
+        print("Recebido com sucesso")
+        clear()
+        print(caixadiario)
+        salvar_dados(clientes,caixadiario,dias_com_horarios)
+        input("Pressione ENTER para continuar")
+        return(caixadiario)
+    else:
+        print("Inválido")
+        input("")
 
 def receber(caixadiario,dias_com_horarios):
     clear()
@@ -410,6 +590,12 @@ while True:
             print("Data inválida. Utilize formato dd/mm/aaaa.")
     elif menu == "14":
         receber(caixadiario,dias_com_horarios)
+    elif menu == "15":
+        cadastro_produto(produtos)
+    elif menu == "16":
+        cadastro_kit(produtos,kits)
+    elif menu == "17":
+        caixadiario = venderprod(produtos,kits,caixadiario,clientes,dias_com_horarios)
     elif menu == "21":
         clientes = cadastrar(clientes)
     elif menu == "22":
@@ -463,18 +649,20 @@ while True:
             receb = 0
             if validar_data(dia):
                 if dia in caixadiario:
-                    print("==========================HORARIOS==========================")
-                    print(f"Horarios marcados: {len(dias_com_horarios[dia])}")
-                    for hora in dias_com_horarios[dia]:
-                        if dias_com_horarios[dia][hora][0].sit == 1:
-                            receb += 1
-                    print(f"Horarios vazios: {8-len(dias_com_horarios[dia])}")
-                    print(f"Horarios recebidos: {receb}")
-                    print(f"Horarios com falta: {len(dias_com_horarios[dia])-receb}")
-                    print("===========================VALORES==========================")
-                    for forma in caixadiario[dia]:
-                        print(f"{forma}: {caixadiario[dia][forma]}")
-                    input("Pressione ENTER para continuar")
+                    if not len(dias_com_horarios) == 0:
+                        print("==========================HORARIOS==========================")
+                        print(f"Horarios marcados: {len(dias_com_horarios[dia])}")
+                        for hora in dias_com_horarios[dia]:
+                            if dias_com_horarios[dia][hora][0].sit == 1:
+                                receb += 1
+                        print(f"Horarios vazios: {8-len(dias_com_horarios[dia])}")
+                        print(f"Horarios recebidos: {receb}")
+                        print(f"Horarios com falta: {len(dias_com_horarios[dia])-receb}")
+                    else:
+                        print("===========================VALORES==========================")
+                        for forma in caixadiario[dia]:
+                            print(f"{forma}: {caixadiario[dia][forma]}")
+                        input("Pressione ENTER para continuar")
                     break
                 else:
                     print("Não possuí vendas nesse dia.")
